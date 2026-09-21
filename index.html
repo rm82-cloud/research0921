@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말하기 불안 × 자기효능감 연구 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+:root{--bg:#f8fafc;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--panel:#fff;--nav:#0f172a;--blue:#2563eb;--slate:#334155;--soft:#f1f5f9}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+.app{min-height:100vh;display:flex}.sidebar{width:250px;background:var(--nav);color:#e2e8f0;padding:28px 20px;position:fixed;inset:0 auto 0 0}.brand{display:flex;gap:12px;align-items:center}.badge{width:42px;height:42px;border-radius:12px;background:#1e293b;display:grid;place-items:center;font-weight:800}.brand small,.sidebar p{color:#94a3b8}.nav{margin-top:34px}.nav div{padding:12px;border-radius:12px;margin:6px 0}.nav .active{background:#1e293b}.security{position:absolute;bottom:24px;font-size:12px;line-height:1.6;color:#94a3b8}.main{margin-left:250px;width:calc(100% - 250px)}header{background:white;border-bottom:1px solid var(--line);padding:24px 30px;display:flex;justify-content:space-between;gap:20px;align-items:center}.eyebrow{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--muted)}h1{margin:5px 0 3px;font-size:26px}.sub{color:var(--muted);font-size:14px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn,.upload{border:1px solid #cbd5e1;background:white;padding:10px 14px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer}.btn.primary{background:#0f172a;color:white;border-color:#0f172a}.content{padding:26px 30px}.filterbar,.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}.filterbar{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.filterbar select{padding:9px 12px;border:1px solid #cbd5e1;border-radius:10px;background:white}.status{background:var(--soft);padding:8px 11px;border-radius:10px;font-size:12px;color:#475569}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}.stat{padding:18px}.stat .label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800}.stat .value{font-size:28px;font-weight:800;margin:10px 0 4px}.stat .note{font-size:12px;color:var(--muted)}.grid3{display:grid;grid-template-columns:2fr 1fr;gap:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.card{padding:18px}.card h2{font-size:16px;margin:0}.card .desc{font-size:12px;color:var(--muted);margin:5px 0 14px;line-height:1.6}.chartbox{height:310px}.guard{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;font-size:13px;line-height:1.65}.bluebox{background:#eff6ff;border:1px solid #dbeafe;color:#1e3a8a}.empty{padding:42px 14px;text-align:center;color:#64748b;font-size:13px;border:1px dashed #cbd5e1;border-radius:14px;background:#f8fafc}.privacy{font-size:12px;color:#475569;line-height:1.7;margin-top:12px}.hidden{display:none}
+@media(max-width:1000px){.sidebar{display:none}.main{margin-left:0;width:100%}.grid4{grid-template-columns:repeat(2,1fr)}.grid3,.grid2{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}@media(max-width:620px){.grid4{grid-template-columns:1fr}.content,header{padding:18px}.filterbar{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="badge">R</div><div><strong>Research Lab</strong><br><small>Speaking & SEL</small></div></div>
+  <div class="nav"><div class="active">▣ 연구 대시보드</div><div>👥 학생별 변화</div><div>◫ 상관 분석</div><div>▤ 연구 메모</div></div>
+  <div class="security">🔒 학생 데이터는 이 HTML의 브라우저 메모리에서 처리됩니다.<br>API 키는 이 정적 파일에 넣지 마세요.</div>
+</aside>
+<main class="main" id="dashboard">
+<header>
+  <div><div class="eyebrow">LONGITUDINAL RESEARCH DASHBOARD</div><h1>말하기 불안 × 자기효능감</h1><div class="sub">각 학생의 변화와 두 변인의 관계를 종단적으로 살펴봅니다.</div></div>
+  <div class="actions">
+    <label class="upload">XLSX/CSV 업로드<input id="fileInput" type="file" accept=".xlsx,.xls,.csv" multiple class="hidden"></label>
+    <button class="btn primary" id="pngBtn">PNG 저장</button>
+  </div>
+</header>
+<div class="content">
+  <section class="filterbar"><strong>분석 대상</strong><div style="display:flex;gap:10px;flex-wrap:wrap"><select id="studentSelect"></select><span class="status" id="sourceStatus">예시 데이터</span></div></section>
+  <section class="grid4">
+    <div class="card stat"><div class="label">학생 수</div><div class="value" id="studentCount">0</div><div class="note">현재 분석 데이터셋</div></div>
+    <div class="card stat"><div class="label">평균 말하기 불안</div><div class="value" id="avgAnxiety">—</div><div class="note">설문 점수 기반</div></div>
+    <div class="card stat"><div class="label">평균 자기효능감</div><div class="value" id="avgEfficacy">—</div><div class="note">설문 점수 기반</div></div>
+    <div class="card stat"><div class="label">상관계수 r</div><div class="value" id="corr">—</div><div class="note" id="pairN">완전쌍 n=0</div></div>
+  </section>
+  <section class="grid3">
+    <article class="card"><h2>학생별 종단 변화</h2><div class="desc" id="studentDesc">시점별 말하기 불안과 자기효능감</div><div class="chartbox"><canvas id="trendChart"></canvas></div></article>
+    <article class="card"><h2>AI 마음일기 정서 신호</h2><div class="desc">일기 속 일반 불안감과 감정온도입니다. 말하기 불안 척도의 대체값으로 사용하지 않습니다.</div><div class="chartbox"><canvas id="journalChart"></canvas></div><div class="privacy" id="journalAvg">전체 학생 일기 불안 평균: —</div></article>
+  </section>
+  <section class="grid2">
+    <article class="card"><h2>말하기 불안–자기효능감 관계</h2><div class="desc">동일 시점에 두 점수가 모두 있는 관측치만 포함합니다.</div><div class="chartbox"><canvas id="scatterChart"></canvas></div></article>
+    <article class="card"><h2>연구 해석 가드레일</h2>
+      <div class="guard">AI 마음일기의 <strong>불안감</strong>은 일반 정서 신호이며, 영어 <strong>말하기 불안</strong>과 동일한 측정치가 아닙니다.</div>
+      <div class="guard">말하기 불안과 자기효능감의 변화 검증은 사전·사후 설문 또는 반복측정 설문 점수를 기준으로 해석하는 것이 적절합니다.</div>
+      <div class="guard">상관관계는 두 변수의 동반 변화를 보여주지만 인과관계를 의미하지 않습니다.</div>
+      <div class="guard bluebox"><strong>권장 분석:</strong> 학생별 사전–사후 변화량, 전체 및 하위집단 상관, AI 일기 정서 신호와 설문 점수의 수렴·불일치 패턴을 분리해 검토하세요.</div>
+    </article>
+  </section>
+</div>
+</main>
+</div>
+<script>
+const demo={students:[
+{id:'S01',name:'학생 01',latestSpeakingAnxiety:2.8,latestSelfEfficacy:3.9,journalAnxietyMean:2.3},
+{id:'S02',name:'학생 02',latestSpeakingAnxiety:3.5,latestSelfEfficacy:3.0,journalAnxietyMean:3.1},
+{id:'S03',name:'학생 03',latestSpeakingAnxiety:2.2,latestSelfEfficacy:4.2,journalAnxietyMean:1.9}],seriesByStudent:{
+S01:[{date:'사전',speakingAnxiety:4.1,selfEfficacy:2.4,journalAnxiety:3.4,emotionTemperature:2.7},{date:'중간',speakingAnxiety:3.3,selfEfficacy:3.2,journalAnxiety:2.7,emotionTemperature:3.4},{date:'사후',speakingAnxiety:2.8,selfEfficacy:3.9,journalAnxiety:2.1,emotionTemperature:4.0}],
+S02:[{date:'사전',speakingAnxiety:4.0,selfEfficacy:2.5,journalAnxiety:3.6,emotionTemperature:2.5},{date:'중간',speakingAnxiety:3.7,selfEfficacy:2.8,journalAnxiety:3.2,emotionTemperature:2.9},{date:'사후',speakingAnxiety:3.5,selfEfficacy:3.0,journalAnxiety:3.0,emotionTemperature:3.1}],
+S03:[{date:'사전',speakingAnxiety:3.7,selfEfficacy:2.7,journalAnxiety:2.8,emotionTemperature:3.0},{date:'중간',speakingAnxiety:2.9,selfEfficacy:3.5,journalAnxiety:2.2,emotionTemperature:3.7},{date:'사후',speakingAnxiety:2.2,selfEfficacy:4.2,journalAnxiety:1.8,emotionTemperature:4.4}]},source:'demo'};
+let data=structuredClone(demo), currentId='S01', charts={};
+const $=s=>document.querySelector(s); const mean=a=>{const v=a.filter(x=>Number.isFinite(x));return v.length?v.reduce((s,x)=>s+x,0)/v.length:null}; const fmt=(v,d=2)=>v==null?'—':Number(v).toFixed(d);
+function pearson(p){if(p.length<3)return null;const mx=mean(p.map(d=>d.x)),my=mean(p.map(d=>d.y));let n=0,dx=0,dy=0;p.forEach(q=>{const a=q.x-mx,b=q.y-my;n+=a*b;dx+=a*a;dy+=b*b});return dx&&dy?n/Math.sqrt(dx*dy):null}
+function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}
+function pick(row,names){for(const n of names){const k=Object.keys(row).find(k=>k.replace(/\s/g,'').toLowerCase()===n.replace(/\s/g,'').toLowerCase());if(k!==undefined)return row[k]}return null}
+function buildFromRows(rows){const by={};for(const r of rows){const id=String(pick(r,['아이디','학생ID','학생 id','id','학번','studentid'])??'').trim();const name=String(pick(r,['이름','학생명','name','student'])??id).trim();if(!id&&!name)continue;const key=id||name;const date=String(pick(r,['날짜','일자','시점','date','회차'])??'').trim()||'시점';const p={date,speakingAnxiety:num(pick(r,['말하기 불안','말하기불안','speaking anxiety','speakingAnxiety'])),selfEfficacy:num(pick(r,['자기효능감','자기 효능감','self efficacy','selfEfficacy'])),journalAnxiety:num(pick(r,['불안감','일기 불안감','journal anxiety','journalAnxiety'])),emotionTemperature:num(pick(r,['감정온도','감정 온도','emotion temperature','emotionTemperature']))};if(!by[key])by[key]={id:key,name:name||key,series:[]};by[key].series.push(p)}const students=[],seriesByStudent={};Object.values(by).forEach(s=>{s.series.sort((a,b)=>String(a.date).localeCompare(String(b.date),'ko'));seriesByStudent[s.id]=s.series;const latest=[...s.series].reverse().find(x=>x.speakingAnxiety!=null||x.selfEfficacy!=null)||{};students.push({id:s.id,name:s.name,latestSpeakingAnxiety:latest.speakingAnxiety??null,latestSelfEfficacy:latest.selfEfficacy??null,journalAnxietyMean:mean(s.series.map(x=>x.journalAnxiety))})});return {students,seriesByStudent,source:'upload'}}
+function chart(id,type,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),{type,data:cfg.data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:cfg.scales||{}}})}
+function render(){const sel=$('#studentSelect');sel.innerHTML='';data.students.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=`${s.name} · ${s.id}`;sel.appendChild(o)});if(!data.students.some(s=>s.id===currentId))currentId=data.students[0]?.id||'';sel.value=currentId;const st=data.students.find(s=>s.id===currentId);const series=st?data.seriesByStudent[st.id]||[]:[];const pairs=data.students.flatMap(s=>(data.seriesByStudent[s.id]||[]).filter(p=>p.speakingAnxiety!=null&&p.selfEfficacy!=null).map(p=>({x:p.speakingAnxiety,y:p.selfEfficacy,student:s.name,date:p.date})));$('#studentCount').textContent=data.students.length;$('#avgAnxiety').textContent=fmt(mean(data.students.map(s=>s.latestSpeakingAnxiety)));$('#avgEfficacy').textContent=fmt(mean(data.students.map(s=>s.latestSelfEfficacy)));$('#corr').textContent=fmt(pearson(pairs),3);$('#pairN').textContent=`완전쌍 n=${pairs.length}`;$('#sourceStatus').textContent=data.source==='demo'?'예시 데이터':'업로드 데이터';$('#studentDesc').textContent=`${st?.name||'학생'}의 시점별 말하기 불안과 자기효능감`;$('#journalAvg').innerHTML=`전체 학생 일기 불안 평균: <strong>${fmt(mean(data.students.map(s=>s.journalAnxietyMean)))}</strong>`;
+chart('#trendChart','line',{data:{labels:series.map(x=>x.date),datasets:[{label:'말하기 불안',data:series.map(x=>x.speakingAnxiety),borderColor:'#334155',backgroundColor:'#334155',tension:.25,spanGaps:true},{label:'자기효능감',data:series.map(x=>x.selfEfficacy),borderColor:'#2563eb',backgroundColor:'#2563eb',tension:.25,spanGaps:true}]},scales:{y:{suggestedMin:0,suggestedMax:5}}});
+chart('#journalChart','line',{data:{labels:series.map(x=>x.date),datasets:[{label:'일기 불안감',data:series.map(x=>x.journalAnxiety),borderColor:'#64748b',backgroundColor:'rgba(100,116,139,.18)',fill:true,tension:.25,spanGaps:true},{label:'감정온도',data:series.map(x=>x.emotionTemperature),borderColor:'#2563eb',backgroundColor:'#2563eb',tension:.25,spanGaps:true}]}});
+chart('#scatterChart','scatter',{data:{datasets:[{label:'관측치',data:pairs,backgroundColor:'#334155'}]},scales:{x:{title:{display:true,text:'말하기 불안'},suggestedMin:0,suggestedMax:5},y:{title:{display:true,text:'자기효능감'},suggestedMin:0,suggestedMax:5}}});}
+$('#studentSelect').addEventListener('change',e=>{currentId=e.target.value;render()});
+$('#fileInput').addEventListener('change',async e=>{const files=[...e.target.files];if(!files.length)return;try{let rows=[];for(const f of files){const buf=await f.arrayBuffer();if(f.name.toLowerCase().endsWith('.csv')){const text=new TextDecoder('utf-8').decode(buf);const wb=XLSX.read(text,{type:'string'});for(const s of wb.SheetNames)rows.push(...XLSX.utils.sheet_to_json(wb.Sheets[s],{defval:null}))}else{const wb=XLSX.read(buf,{type:'array',cellDates:true});for(const s of wb.SheetNames){const a=XLSX.utils.sheet_to_json(wb.Sheets[s],{defval:null});rows.push(...a.map(r=>({...r,__sheet:s})))}}}const built=buildFromRows(rows);if(!built.students.length)throw new Error('학생을 식별할 수 없습니다. 열 이름에 아이디/이름이 포함되어 있는지 확인하세요.');data=built;currentId=data.students[0].id;render()}catch(err){alert('파일 처리 오류: '+err.message)}});
+$('#pngBtn').addEventListener('click',async()=>{const canvas=await html2canvas($('#dashboard'),{backgroundColor:'#f8fafc',scale:2,useCORS:true});const a=document.createElement('a');a.download=`research-dashboard-${currentId||'all'}.png`;a.href=canvas.toDataURL('image/png');a.click()});
+render();
+</script>
+</body>
+</html>
